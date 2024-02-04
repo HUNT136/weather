@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Your existing styles here */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f7a6a6;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .container {
+            text-align: center;
+            background-color: #fff;
+            width: 400px;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .app-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .notification {
+            color: #d9534f;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .weather-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .weather-icon img {
+            width: 100px;
+            height: 100px;
+        }
+
+        .temperature-value p {
+            font-size: 36px;
+            margin: 5px 0;
+        }
+
+        .temperature-value span {
+            font-size: 18px;
+        }
+
+        .temperature-description p {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .location p {
+            font-size: 20px;
+        }
+
+        .icons {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .icons i {
+            font-size: 24px;
+            margin: 0 10px;
+            cursor: pointer;
+        }
+
+        /* New styles for the form page */
+        .form-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .form-container input,
+        .form-container textarea,
+        .form-container button {
+            margin: 10px;
+            padding: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="icons">
+        <i class="fas fa-home" onclick="showWeatherPage()"></i>
+        <i class="fas fa-info-circle" onclick="showAboutPage()"></i>
+    </div>
+
+    <div class="container" id="weatherPage">
+        <div class="app-title">
+            <p>Weather</p>
+        </div>
+        <div class="notification"></div>
+        <div class="weather-container">
+            <div class="weather-icon">
+                <img src="" alt="">
+            </div>
+            <div class="temperature-value">
+                <p>- degree<span>C</span></p>
+            </div>
+            <div class="temperature-description">
+                <p> - </p>
+            </div>
+            <div class="location">
+                <p> - </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-container" id="aboutPage">
+        <h2>Comment</h2>
+        <form>
+            <label for="message">Your Message:</label>
+            <textarea id="message" name="message" rows="4" cols="50"></textarea>
+            <br>
+            <button type="submit">Send Message</button>
+        </form>
+    </div>
+
+    <script>
+        function showWeatherPage() {
+            document.getElementById('weatherPage').style.display = 'flex';
+            document.getElementById('aboutPage').style.display = 'none';
+        }
+
+        function showAboutPage() {
+            document.getElementById('weatherPage').style.display = 'none';
+            document.getElementById('aboutPage').style.display = 'flex';
+        }
+
+        const iconElement = document.querySelector(".weather-icon img");
+        const tempElement = document.querySelector(".temperature-value p");
+        const descElement = document.querySelector(".temperature-description p");
+        const locationElement = document.querySelector(".location p");
+        const notificationElement = document.querySelector(".notification");
+
+        const weather = {};
+        weather.temperature = {
+            unit: "celsius"
+        };
+
+        const KELVIN = 273;
+        const key = "96c01dbd7a9ca735381ec9a4b26c0d52";
+
+        if ('geolocation' in navigator) {
+            navigator.geolocation.getCurrentPosition(setPosition, showError);
+        } else {
+            notificationElement.style.display = "block";
+            notificationElement.innerHTML = "<p>Browser doesn't Support Geolocation</p>";
+        }
+
+        function setPosition(position) {
+            let latitude = position.coords.latitude;
+            let longitude = position.coords.longitude;
+
+            getWeather(latitude, longitude);
+        }
+
+        function showError(error) {
+            notificationElement.style.display = "block";
+            notificationElement.innerHTML = `<p>${error.message}</p>`;
+        }
+
+        function getWeather(latitude, longitude) {
+            let apiUrl = `http://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${key}`;
+
+            fetch(apiUrl)
+                .then(function (response) {
+                    return response.json();
+                })
+                .then(function (data) {
+                    weather.temperature.value = Math.floor(data.main.temp - KELVIN);
+                    weather.description = data.weather[0].description;
+                    weather.iconId = data.weather[0].icon;
+                    weather.city = data.name;
+                    weather.country = data.sys.country;
+                })
+                .then(function () {
+                    displayWeather();
+                });
+        }
+
+        function displayWeather() {
+            iconElement.src = `http://openweathermap.org/img/w/${weather.iconId}.png`;
+            tempElement.innerHTML = `${weather.temperature.value} <span>C</span>`;
+            descElement.innerHTML = weather.description;
+            locationElement.innerHTML = `${weather.city}, ${weather.country}`;
+        }
+
+    </script>
+</body>
+</html>
